@@ -7,9 +7,9 @@ spring:
   application:
     name: auction-service
   datasource:
-    url: jdbc:postgresql://localhost:5433/auction-service?user=postgres&password=test
-    username: postgres
-    password: test
+    url: jdbc:postgresql://localhost:5433/auction-service
+    username: ${POSTGRES_PASSWORD}
+    password: ${POSTGRES_USER}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
