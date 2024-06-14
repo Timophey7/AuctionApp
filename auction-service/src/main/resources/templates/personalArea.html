@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Личный кабинет</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            display: flex;
+            padding: 20px;
+            width: 90%;
+            margin: 50px auto;
+        }
+
+        .user-info {
+            width: 30%;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-right: 20px;
+        }
+
+        .user-info h3 {
+            color: #007bff;
+            margin-bottom: 15px;
+        }
+
+        .user-info p {
+            margin-bottom: 5px;
+        }
+
+        .auctions,
+        .bids {
+            width: 30%;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .auctions h3,
+        .bids h3 {
+            color: #007bff;
+            margin-bottom: 15px;
+        }
+
+        .auctions p,
+        .bids p {
+            margin-bottom: 5px;
+        }
+
+        hr {
+            margin-top: 30px;
+            margin-bottom: 20px;
+            border: 0;
+            border-top: 1px solid #ddd;
+        }
+    </style>
+</head>
+<header>
+    <div class="user-info" th:object="${user}">
+        <h3>Информация о пользователе</h3>
+        <p th:text="*{firstName}"></p>
+        <p th:text="*{lastName}"></p>
+        <p th:text="*{email}"></p>
+    </div>
+</header>
+<body>
+<div class="container">
+    <div class="auctions">
+        <h3>Ваши аукционы</h3>
+        <div th:each="auction:${allAuctions}">
+            <p th:text="${auction.title}"></p>
+            <p th:text="${auction.price}"></p>
+        </div>
+    </div>
+    <div class="bids">
+        <h3>Ваши ставки</h3>
+        <div th:each="bid:${allBids}">
+            <p th:text="${bid.uniqueCode}"></p>
+            <p th:text="${bid.newBid}"></p>
+        </div>
+    </div>
+</div>
+</body>
+</html>

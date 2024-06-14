@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Создание слота аукциона</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      width: 500px;
+      margin: 50px auto;
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+      color: #007bff;
+      margin-bottom: 20px;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+    }
+
+    label {
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    input[type="time"],
+    textarea {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      margin-bottom: 15px;
+      box-sizing: border-box;
+    }
+
+    p.error {
+      color: red;
+      margin-bottom: 10px;
+    }
+
+    input[type="submit"] {
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    input[type="submit"]:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h2>Создание слота аукциона</h2>
+  <form th:action="@{/v1/auction/saveAuction}" method="post" th:object="${auction}">
+    <div>
+      <label for="title">Введите наименование товара или услуги</label>
+      <input type="text" id="title" name="title" th:field="*{title}" placeholder="Название товара">
+      <p th:if="${#fields.hasErrors('title')}" th:errors="*{title}" class="error"></p>
+    </div>
+    <div>
+      <label for="description">Введите описание</label>
+      <input type="text" id="description" name="description" th:field="*{description}" placeholder="Описание товара">
+      <p th:if="${#fields.hasErrors('description')}" th:errors="*{description}" class="error"></p>
+    </div>
+    <div>
+      <label for="price">Введите цену</label>
+      <input type="number" id="price" name="price" th:field="*{price}" placeholder="Цена товара">
+      <p th:if="${#fields.hasErrors('price')}" th:errors="*{price}" class="error"></p>
+    </div>
+    <div>
+      <label for="startDate">Введите дату начала аукциона</label>
+      <input type="date" id="startDate" name="startDate" placeholder="Начало аукциона">
+    </div>
+    <div>
+      <label for="startTime">Введите время начала аукциона</label>
+      <input type="time" id="startTime" name="startTime" placeholder="Начало аукциона">
+    </div>
+    <div>
+      <label for="endDate">Введите дату конца аукциона</label>
+      <input type="date" id="endDate" name="endDate" placeholder="Конец аукциона">
+    </div>
+    <div>
+      <label for="endTime">Введите время конца аукциона</label>
+      <input type="time" id="endTime" name="endTime" placeholder="Конец аукциона">
+    </div>
+    <div>
+      <label for="ownerEmail">Введите вашу почту</label>
+      <input type="text" id="ownerEmail" name="ownerEmail" th:field="*{ownerEmail}" placeholder="ваша почта">
+      <p th:if="${#fields.hasErrors('ownerEmail')}" th:errors="*{ownerEmail}" class="error"></p>
+    </div>
+    <div>
+      <label for="photoUrl">Url картинки</label>
+      <input type="text" id="photoUrl" name="photoUrl" th:field="*{photoUrl}" placeholder="url картинки">
+      <p th:if="${#fields.hasErrors('photoUrl')}" th:errors="*{photoUrl}" class="error"></p>
+    </div>
+    <input type="submit" value="Отправить">
+  </form>
+</div>
+</body>
+</html>

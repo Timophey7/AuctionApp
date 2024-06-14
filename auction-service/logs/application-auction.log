@@ -1,0 +1,7 @@
+2024-06-14 15:28:17 [background-preinit] INFO  o.h.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.1.Final
+2024-06-14 15:28:17 [main] INFO  c.a.c.AuctionControllerTest - Starting AuctionControllerTest using Java 22.0.1 with PID 17956 (started by Димыч in C:\Users\Димыч\Downloads\AuctionApp\auction-service)
+2024-06-14 15:28:17 [main] INFO  c.a.c.AuctionControllerTest - No active profile set, falling back to 1 default profile: "default"
+2024-06-14 15:28:19 [main] INFO  o.s.b.t.m.w.SpringBootMockServletContext - Initializing Spring TestDispatcherServlet ''
+2024-06-14 15:28:19 [main] INFO  o.s.t.w.s.TestDispatcherServlet - Initializing Servlet ''
+2024-06-14 15:28:19 [main] INFO  o.s.t.w.s.TestDispatcherServlet - Completed initialization in 1 ms
+2024-06-14 15:28:19 [main] INFO  c.a.c.AuctionControllerTest - Started AuctionControllerTest in 2.954 seconds (process running for 4.09)
