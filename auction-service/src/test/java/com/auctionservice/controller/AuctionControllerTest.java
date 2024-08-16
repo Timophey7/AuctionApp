@@ -214,7 +214,7 @@ class AuctionControllerTest {
         when(bidRepository.findAllByCustomerEmail(email)).thenReturn(List.of(bid));
         when(auctionInfoRepository.findAllByOwnerEmail(email)).thenReturn(List.of(auctionInfo));
 
-        ResultActions perform = mockMvc.perform(get("/v1/auction/personalArea")
+        ResultActions perform = mockMvc.perform(get("/v1/auction/personalArea.css")
                 .session(session)
         );
 
@@ -231,7 +231,7 @@ class AuctionControllerTest {
         session.setAttribute("email",null);
 
 
-        ResultActions perform = mockMvc.perform(get("/v1/auction/personalArea")
+        ResultActions perform = mockMvc.perform(get("/v1/auction/personalArea.css")
                 .session(session)
         );
 

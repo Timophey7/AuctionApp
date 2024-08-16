@@ -3,66 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Личный кабинет</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-        }
-
-        .container {
-            display: flex;
-            padding: 20px;
-            width: 90%;
-            margin: 50px auto;
-        }
-
-        .user-info {
-            width: 30%;
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            margin-right: 20px;
-        }
-
-        .user-info h3 {
-            color: #007bff;
-            margin-bottom: 15px;
-        }
-
-        .user-info p {
-            margin-bottom: 5px;
-        }
-
-        .auctions,
-        .bids {
-            width: 30%;
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-
-        .auctions h3,
-        .bids h3 {
-            color: #007bff;
-            margin-bottom: 15px;
-        }
-
-        .auctions p,
-        .bids p {
-            margin-bottom: 5px;
-        }
-
-        hr {
-            margin-top: 30px;
-            margin-bottom: 20px;
-            border: 0;
-            border-top: 1px solid #ddd;
-        }
-    </style>
+    <link rel="stylesheet" href="/static/personalArea.css">.
 </head>
 <header>
     <div class="user-info" th:object="${user}">

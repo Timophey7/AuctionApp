@@ -96,7 +96,7 @@ public class AuctionController {
         return "redirect:/v1/auction/info/" + uniqueCode;
     }
 
-    @GetMapping("/personalArea")
+    @GetMapping("/personalArea.css")
     public String personalArea(Model model,HttpSession session) {
         String email = (String) session.getAttribute("email");
         if (email == null) {
@@ -109,6 +109,6 @@ public class AuctionController {
         model.addAttribute("allAuctions", allByOwnerEmail);
         model.addAttribute("allBids", allByCustomerEmail);
         model.addAttribute("user", userByEmail);
-        return "personalArea";
+        return "personalArea.css";
     }
 }
