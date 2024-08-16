@@ -15,7 +15,7 @@ public class UserServiceImpl implements UserService {
     private final WebClient.Builder webClientBuilder;
 
     @Override
-    public User findUserByEmail(String email) {
+    public User findUserByEmail(String email){
         User user = webClientBuilder.build().get().uri("http://user-service/v1/security/getUserByEmail/" + email)
                 .retrieve().bodyToMono(User.class).block();
         log.info(user.toString());

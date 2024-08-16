@@ -11,28 +11,24 @@ import static org.junit.jupiter.api.Assertions.*;
 class BidRepositoryTest {
 
     @Autowired
-    private BidRepository bidRepository;
+    BidRepository bidRepository;
 
     @Test
     void findWiningBid() {
-        Bid bid = new Bid();
-        bid.setUniqueCode("test");
-        bid.setCustomerEmail("test@test.com");
-        bid.setNewBid(100);
-        Bid bid2 = new Bid();
-        bid2.setUniqueCode("test");
-        bid2.setCustomerEmail("test2@test.com");
-        bid2.setNewBid(200);
-        bidRepository.save(bid);
-        bidRepository.save(bid2);
+        Bid bidWin = new Bid();
+        bidWin.setNewBid(110);
+        bidWin.setCustomerEmail("test@gmail.com");
+        bidWin.setUniqueCode("werty123");
+        Bid bidLost = new Bid();
+        bidLost.setNewBid(101);
+        bidLost.setCustomerEmail("test2@gmail.com");
+        bidLost.setUniqueCode("werty123");
+        bidRepository.save(bidWin);
+        bidRepository.save(bidLost);
 
-        Bid winingBid = bidRepository.findWiningBid("test");
+        Bid winingBid = bidRepository.findWiningBid("werty123");
 
-        assertNotNull(winingBid);
-        assertEquals(winingBid.getUniqueCode(), "test");
-        assertEquals(winingBid.getCustomerEmail(), "test2@test.com");
-        assertEquals(winingBid.getNewBid(), 200);
-
+        assertEquals(bidWin,winingBid);
 
     }
 }

@@ -1,6 +1,8 @@
 spring:
+  kafka:
+    bootstrap-servers: localhost:29092
   datasource:
-    url: jdbc:h2://mem:db
+    url: jdbc:h2:file:./testdb;DB_CLOSE_ON_EXIT=FALSE
     username: user
     password: password
     driver-class-name: org.h2.Driver
@@ -8,3 +10,5 @@ spring:
     show-sql: true
     hibernate:
       ddl-auto: create-drop
+      dialect: org.hibernate.dialect.H2Dialect
+   

@@ -5,9 +5,14 @@ spring:
     gateway:
       mvc:
         routes:
-          - id: auction-service
-            uri: http://localhost:8096
+          - id: task-service
+            uri:
+              http://localhost:8096
+            predicates:
               - Path=/v1/auction/**
+
           - id: user-service
-            uri: http://localhost:8095
+            uri:
+              http://localhost:8095
+            predicates:
               - Path=/v1/security/**

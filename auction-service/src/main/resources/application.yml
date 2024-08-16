@@ -1,22 +1,19 @@
 spring:
-  liquibase:
-    enabled: true
-    change-log: classpath:db.changelog/liquibase-changelog.yaml
   kafka:
     bootstrap-servers: localhost:29092
   application:
     name: auction-service
   datasource:
-    url: jdbc:postgresql://localhost:5433/auction-service
-    username: ${POSTGRES_PASSWORD}
-    password: ${POSTGRES_USER}
-    driver-class-name: org.postgresql.Driver
+    url: jdbc:mysql://localhost:3306/auction-service
+    username: ${USER}
+    password: ${PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: create-drop
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+        dialect: org.hibernate.dialect.MySQLDialect
     show-sql: true
 server:
   port: 8096

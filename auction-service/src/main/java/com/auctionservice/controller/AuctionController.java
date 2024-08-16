@@ -5,55 +5,48 @@ import com.auctionservice.models.Bid;
 import com.auctionservice.models.User;
 import com.auctionservice.repository.AuctionInfoRepository;
 import com.auctionservice.repository.BidRepository;
-import com.auctionservice.service.CookieUtil;
-import com.auctionservice.service.DateService;
-import com.auctionservice.service.HashGenerator;
-import com.auctionservice.service.UserService;
+import com.auctionservice.service.*;
 import io.micrometer.core.annotation.Timed;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-
-import java.util.ArrayList;
 import java.util.List;
 
-@Controller
-@RequestMapping("/v1/auction")
+@FieldDefaults(makeFinal = true,level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
+@RequestMapping("/v1/auction")
+@Controller
 public class AuctionController {
 
-    private final HashGenerator hashGenerator;
-    private final AuctionInfoRepository auctionInfoRepository;
-    private final CookieUtil cookieUtil;
-    private final BidRepository bidRepository;
-    private final DateService dateService;
-    private final UserService userService;
+    private static final Logger log = LoggerFactory.getLogger(AuctionController.class);
+    AuctionInfoRepository auctionInfoRepository;
+    BidRepository bidRepository;
+    UserService userService;
+    AuctionService auctionService;
 
 
     @GetMapping("/home")
     @Timed("homePage")
     public String home(Model model) {
-        List<AuctionInfo> validAuctions = new ArrayList<>();
-        auctionInfoRepository.findAll().forEach(auctionInfo -> {
-            if(auctionInfo.getIsValid() && dateService.startAuctionTime(auctionInfo.getStartDate(),auctionInfo.getStartTime())){
-                validAuctions.add(auctionInfo);
-            }
-        });
+        List<AuctionInfo> validAuctions = auctionService.getValidAuctions();
         model.addAttribute("auctions", validAuctions);
         return "home";
     }
-
 
     @GetMapping("/createAuctionForm")
     public String createAuctionForm(Model model,HttpSession session) {
         String email = (String) session.getAttribute("email");
         if (email == null) {
+            model.addAttribute("errors","Войдите в аккаунт");
             return "redirect:/v1/auction/security/login";
         }
         model.addAttribute("auction", new AuctionInfo());
@@ -62,10 +55,14 @@ public class AuctionController {
 
     @PostMapping("/saveAuction")
     public String saveAuction(@Valid @ModelAttribute("auction") AuctionInfo auction, BindingResult bindingResult, Model model) {
-        auction.setUniqueCode(hashGenerator.generateHash());
-        auctionInfoRepository.save(auction);
+        if (bindingResult.hasErrors()){
+            model.addAttribute("errors",bindingResult.getAllErrors());
+            return "redirect:/v1/auction/createAuctionForm";
+        }
+        auctionService.saveAuction(auction);
         return "redirect:/v1/auction/home";
     }
+
     @Timed("infoAboutAuction")
     @GetMapping("/info/{uniqueCode}")
     public String auction(@PathVariable("uniqueCode") String uniqueCode, Model model) {
@@ -75,23 +72,27 @@ public class AuctionController {
         return "auction";
     }
 
-    @GetMapping("/newBid/{uniqueCode}")
-    public String newBid(@PathVariable("uniqueCode") String uniqueCode,
-                         @Valid @ModelAttribute("bid")Bid bid, BindingResult result, Model model,
-                         HttpSession session) {
-        AuctionInfo auctionInfoByUniqueCode = auctionInfoRepository.findAuctionInfoByUniqueCode(uniqueCode);
-        if (result.hasErrors() || bid.getNewBid()<auctionInfoByUniqueCode.getPrice()) {
-            return "redirect:/v1/auction/info/" + uniqueCode;
-        }
+    @PostMapping("/newBid/{uniqueCode}")
+    public String newBid(
+            @PathVariable("uniqueCode") String uniqueCode,
+            @ModelAttribute("bid")Bid bid,
+            Model model,
+            HttpSession session
+    ) {
         String email = (String) session.getAttribute("email");
         if (email ==null){
+            model.addAttribute("errors","Войдите в аккаунт");
             return "redirect:/v1/auction/security/login";
         }
-        bid.setUniqueCode(uniqueCode);
-        bid.setCustomerEmail(email);
-        bidRepository.save(bid);
-        auctionInfoByUniqueCode.setPrice(bid.getNewBid());
-        auctionInfoRepository.save(auctionInfoByUniqueCode);
+        boolean valided = auctionService.validPrice(uniqueCode, bid.getNewBid());
+        log.info("bid:" + bid.getNewBid());
+        log.info(String.valueOf(valided));
+        if (!valided){
+            model.addAttribute("bidIsLowError","ставка слишком низкая");
+            log.info(model.getAttribute("bidIsLowError").toString());
+            return "redirect:/v1/auction/info/" + uniqueCode+ "?bidIsLowError=ставка слишком низкая";
+        }
+        auctionService.setNewPrice(uniqueCode,bid,email);
         return "redirect:/v1/auction/info/" + uniqueCode;
     }
 
@@ -99,6 +100,7 @@ public class AuctionController {
     public String personalArea(Model model,HttpSession session) {
         String email = (String) session.getAttribute("email");
         if (email == null) {
+            model.addAttribute("errors","Войдите в аккаунт");
             return "redirect:/v1/auction/security/login";
         }
         User userByEmail = userService.findUserByEmail(email);
@@ -109,5 +111,4 @@ public class AuctionController {
         model.addAttribute("user", userByEmail);
         return "personalArea";
     }
-
 }

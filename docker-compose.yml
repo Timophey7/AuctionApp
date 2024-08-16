@@ -2,19 +2,10 @@ version: "3.8"
 
 services:
 
-
-  discovery-service:
-    image: auction:discovery-service
+  base-project-sonar:
+    image: sonarqube:9.9.0-community
     ports:
-      - "8761:8761"
-
-  user-service:
-    image: auction:user-service
-    ports:
-      - "8095:8095"
-    depends_on:
-      - postgres
-      - discovery-service
+      - '9000:9000'
 
   postgres:
     image: postgres:13.3

@@ -5,35 +5,30 @@ import com.auctionservice.models.Bid;
 import com.auctionservice.models.User;
 import com.auctionservice.repository.AuctionInfoRepository;
 import com.auctionservice.repository.BidRepository;
-import com.auctionservice.service.CookieUtil;
-import com.auctionservice.service.DateService;
-import com.auctionservice.service.HashGenerator;
+import com.auctionservice.service.AuctionService;
 import com.auctionservice.service.UserService;
-import jakarta.servlet.http.HttpServletRequest;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.validation.BindingResult;
-
-import static org.hamcrest.Matchers.hasSize;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.List;
 
-import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+
+import static org.mockito.Mockito.*;
 
 @WebMvcTest(controllers = AuctionController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -41,207 +36,207 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class AuctionControllerTest {
 
     @Autowired
-    private MockMvc mockMvc;
-    @MockBean
-    public HashGenerator hashGenerator;
-    @MockBean
-    public AuctionInfoRepository auctionInfoRepository;
-    @MockBean
-    public CookieUtil cookieUtil;
-    @MockBean
-    public BidRepository bidRepository;
-    @MockBean
-    public DateService dateService;
-    @MockBean
-    public UserService userService;
+    MockMvc mockMvc;
 
-    private Bid bid;
-    private AuctionInfo auctionInfo;
-    private User user;
+    @MockBean
+    AuctionInfoRepository auctionInfoRepository;
+
+    @MockBean
+    BidRepository bidRepository;
+
+    @MockBean
+    UserService userService;
+
+    @MockBean
+    AuctionService auctionService;
+
+    private static final String UNIQUE_CODE = "werty123";
+
+
+    ObjectMapper objectMapper;
+    AuctionInfo auctionInfo;
 
     @BeforeEach
     void setUp() {
+        objectMapper = new ObjectMapper();
         auctionInfo = new AuctionInfo();
         auctionInfo.setId(1);
-        auctionInfo.setTitle("title");
-        auctionInfo.setDescription("description");
-        auctionInfo.setPrice(390);
-        auctionInfo.setUniqueCode("test");
-        auctionInfo.setOwnerEmail("test@test.com");
         auctionInfo.setIsValid(true);
-        bid = new Bid();
-        bid.setId(1);
-        bid.setCustomerEmail("test@test.com");
-        bid.setNewBid(200);
-        bid.setUniqueCode("test");
-        user = new User();
-        user.setEmail("test@test.com");
-        user.setFirstName("firs");
-        user.setLastName("last");
+        auctionInfo.setStartDate(LocalDate.now());
+        auctionInfo.setStartTime(LocalTime.now());
+        auctionInfo.setEndDate(LocalDate.now().plusDays(1));
+        auctionInfo.setEndTime(LocalTime.now().plusHours(1));
+        auctionInfo.setPrice(1000);
+        auctionInfo.setUniqueCode(UNIQUE_CODE);
+        auctionInfo.setOwnerEmail("test@gmail.com");
+        auctionInfo.setTitle("Test");
+        auctionInfo.setPhotoUrl("testUrl");
+        auctionInfo.setDescription("testDescription");
     }
 
     @Test
-    void homeShouldReturnStatusIsOk() throws Exception {
-        List<AuctionInfo> validAuctions = List.of(auctionInfo);
-
-        when(auctionInfoRepository.findAll()).thenReturn(validAuctions);
-
-
-        when(dateService.startAuctionTime(any(LocalDate.class), any(LocalTime.class))).thenReturn(true);
+    void home() throws Exception {
+        when(auctionService.getValidAuctions()).thenReturn(List.of(auctionInfo));
 
         ResultActions perform = mockMvc.perform(get("/v1/auction/home"));
 
-        perform
-                .andExpect(status().isOk())
-                .andExpect(model().attributeExists("auctions"));
+        perform.andExpect(status().is2xxSuccessful())
+                .andExpect(model().attribute("auctions",List.of(auctionInfo)));
 
     }
 
     @Test
-    void homeShouldReturnEmptyListOfAuctions() throws Exception {
-        auctionInfo.setIsValid(false);
-        List<AuctionInfo> unValidAuctions = List.of(auctionInfo);
-        when(auctionInfoRepository.findAll()).thenReturn(unValidAuctions);
+    void createAuctionForm_Success() throws Exception {
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute("email","test@gmail.com");
 
-        ResultActions perform = mockMvc.perform(get("/v1/auction/home"));
+        ResultActions perform = mockMvc.perform(get("/v1/auction/createAuctionForm")
+                .session(session)
+        );
 
-        perform.andExpect(status().isOk())
-                .andExpect(model().attributeExists("auctions"))
-                .andExpect(model().attribute("auctions", hasSize(0)));
-
-
+        perform.andExpect(status().is2xxSuccessful())
+                .andExpect(model().attribute("auction",new AuctionInfo()));
     }
 
     @Test
-    void createAuctionFormShouldReturnStatusIsOk() throws Exception {
+    void createAuctionForm_UserNotRegister() throws Exception {
+        MockHttpSession session = new MockHttpSession();
 
-        String email = "test@test.com";
-        when(cookieUtil.getCookieValue(any(HttpServletRequest.class), anyString())).thenReturn(email);
 
-        ResultActions perform = mockMvc.perform(get("/v1/auction/createAuctionForm"));
-
-        perform.andExpect(status().isOk())
-                .andExpect(model().attributeExists("auction"));
-
-    }
-
-    @Test
-    void createAuctionFormShouldReturnRedirectStatus() throws Exception {
-        String email = null;
-        when(cookieUtil.getCookieValue(any(HttpServletRequest.class), anyString())).thenReturn(email);
-
-        ResultActions perform = mockMvc.perform(get("/v1/auction/createAuctionForm"));
+        ResultActions perform = mockMvc.perform(get("/v1/auction/createAuctionForm")
+                .session(session)
+        );
 
         perform.andExpect(status().is3xxRedirection())
-                .andExpect(model().attributeDoesNotExist("auction"));
+                .andExpect(redirectedUrl("/v1/auction/security/login"));
     }
 
     @Test
-    void saveAuctionShouldReturnStatusIsRedirect() throws Exception {
-
-        when(hashGenerator.generateHash()).thenReturn("test");
-        when(auctionInfoRepository.save(any(AuctionInfo.class))).thenReturn(auctionInfo);
+    void saveAuction_Success() throws Exception {
+        doNothing().when(auctionService).saveAuction(auctionInfo);
 
         ResultActions perform = mockMvc.perform(post("/v1/auction/saveAuction")
-                .requestAttr("auction", auctionInfo));
-
-        perform.andExpect(status().is3xxRedirection());
-        verify(auctionInfoRepository).save(any(AuctionInfo.class));
-
-    }
-
-    @Test
-    void auctionShouldReturnStatusIsOk() throws Exception {
-
-        String uniqueCode = "test";
-        when(auctionInfoRepository.findAuctionInfoByUniqueCode(uniqueCode)).thenReturn(auctionInfo);
-
-        ResultActions perform = mockMvc.perform(get("/v1/auction/info/{uniqueCode}", uniqueCode)
-                .param("uniqueCode", uniqueCode));
-
-        perform.andExpect(status().isOk())
-                .andExpect(model().attributeExists("auction"))
-                .andExpect(model().attribute("auction", auctionInfo))
-                .andExpect(model().attributeExists("bid"));
-
-    }
-
-    @Test
-    void newBidShouldRedirectToInfoAndSaveAllInfo() throws Exception {
-
-        String uniqueCode = "test";
-        when(auctionInfoRepository.findAuctionInfoByUniqueCode(uniqueCode)).thenReturn(auctionInfo);
-        when(cookieUtil.getCookieValue(any(HttpServletRequest.class), anyString())).thenReturn("test@test.com");
-
-        ResultActions perform = mockMvc.perform(get("/v1/auction/newBid/test")
-                .param("uniqueCode", uniqueCode)
-                .requestAttr("bid", bid));
+                .flashAttr("auction",auctionInfo)
+        );
 
         perform.andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/v1/auction/info/test"));
+                .andExpect(redirectedUrl("/v1/auction/home"));
     }
 
     @Test
-    void newBidShouldRedirectToInfoAndNotSaveAllInfo() throws Exception {
-        AuctionInfo auctionInfo = new AuctionInfo();
-        auctionInfo.setPrice(100);
-        when(auctionInfoRepository.findAuctionInfoByUniqueCode("test")).thenReturn(auctionInfo);
+    void auction_Success() throws Exception {
 
-        mockMvc.perform(get("/v1/auction/newBid/test")
-                        .param("uniqueCode", "test")
-                        .requestAttr("bid",bid))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/v1/auction/info/test"));
+        when(auctionInfoRepository.findAuctionInfoByUniqueCode(UNIQUE_CODE)).thenReturn(auctionInfo);
 
-        verify(bidRepository, never()).save(any(Bid.class));
-        verify(auctionInfoRepository, never()).save(any(AuctionInfo.class));
+        ResultActions perform = mockMvc.perform(get("/v1/auction/info/" + UNIQUE_CODE));
+
+        perform.andExpect(status().is2xxSuccessful())
+                .andExpect(model().attribute("auction",auctionInfo))
+                .andExpect(model().attribute("bid",new Bid()));
     }
 
     @Test
-    void newBidShouldRedirectToLoginAndNotSaveAllInfo() throws Exception {
+    void newBid_Success() throws Exception{
+        Bid bid = new Bid();
+        bid.setId(1);
+        bid.setNewBid(2000.0);
+        bid.setUniqueCode(UNIQUE_CODE);
+        bid.setCustomerEmail("test@gmail.com");
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute("email","test@gmail.com");
+        when(auctionService.validPrice(UNIQUE_CODE,bid.getNewBid())).thenReturn(true);
+        doNothing().when(auctionService).setNewPrice(UNIQUE_CODE,bid,"test@gmail.com");
 
-        when(cookieUtil.getCookieValue(any(HttpServletRequest.class), anyString())).thenReturn(null);
+        ResultActions perform = mockMvc.perform(post("/v1/auction/newBid/" + UNIQUE_CODE)
+                        .flashAttr("bid",bid)
+                .session(session)
+        );
 
-        mockMvc.perform(get("/newBid/test")
-                        .param("uniqueCode","test")
-                        .requestAttr("bid",bid))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/v1/security/login"));
+        perform.andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/v1/auction/info/"+UNIQUE_CODE));
 
-        verify(bidRepository, never()).save(any(Bid.class));
-        verify(auctionInfoRepository, never()).save(any(AuctionInfo.class));
     }
 
     @Test
-    void personalAreaShouldReturnStatusIsOk() throws Exception {
-        List<Bid> bids = List.of(bid);
-        List<AuctionInfo> validAuctions = List.of(auctionInfo);
-        String email = "test@test.com";
-        when(cookieUtil.getCookieValue(any(HttpServletRequest.class), anyString())).thenReturn(email);
+    void newBid_NotAuthorize() throws Exception{
+        Bid bid = new Bid();
+        bid.setId(1);
+        bid.setNewBid(1100);
+        bid.setUniqueCode(UNIQUE_CODE);
+        bid.setCustomerEmail("test@gmail.com");
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute("email",null);
+
+        ResultActions perform = mockMvc.perform(post("/v1/auction/newBid/" + UNIQUE_CODE)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(bid))
+                .session(session)
+        );
+
+        perform.andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/v1/auction/security/login"));
+
+    }
+
+    @Test
+    void newBid_BidIsLow() throws Exception{
+        Bid bid = new Bid();
+        bid.setId(1);
+        bid.setNewBid(10);
+        bid.setUniqueCode(UNIQUE_CODE);
+        bid.setCustomerEmail("test@gmail.com");
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute("email","test@gmail.com");
+        when(auctionService.validPrice(UNIQUE_CODE,bid.getNewBid())).thenReturn(false);
+
+        ResultActions perform = mockMvc.perform(post("/v1/auction/newBid/" + UNIQUE_CODE)
+                .flashAttr("bid",bid)
+                .session(session)
+        );
+
+        perform.andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/v1/auction/info/"+UNIQUE_CODE+"?bidIsLowError=ставка слишком низкая"));
+    }
+
+
+    @Test
+    void personalArea_Success() throws Exception {
+        Bid bid = new Bid();
+        String email = "test@gmail.com";
+        User user = new User();
+        user.setId(1);
+        user.setUsername("testUserName");
+        user.setEmail(email);
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute("email",email);
+
         when(userService.findUserByEmail(email)).thenReturn(user);
-        when(bidRepository.findAllByCustomerEmail(email)).thenReturn(bids);
-        when(auctionInfoRepository.findAllByOwnerEmail(email)).thenReturn(validAuctions);
+        when(bidRepository.findAllByCustomerEmail(email)).thenReturn(List.of(bid));
+        when(auctionInfoRepository.findAllByOwnerEmail(email)).thenReturn(List.of(auctionInfo));
 
-        ResultActions perform = mockMvc.perform(get("/v1/auction/personalArea"));
+        ResultActions perform = mockMvc.perform(get("/v1/auction/personalArea")
+                .session(session)
+        );
 
-        perform.andExpect(status().isOk())
-                .andExpect(model().attribute("allAuctions",validAuctions))
-                .andExpect(model().attribute("allBids",bids))
+        perform
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(model().attribute("allAuctions",List.of(auctionInfo)))
+                .andExpect(model().attribute("allBids",List.of(bid)))
                 .andExpect(model().attribute("user",user));
-
-
     }
 
     @Test
-    void personalAreaShouldReturnRedirectStatus() throws Exception {
-        when(cookieUtil.getCookieValue(any(HttpServletRequest.class), anyString())).thenReturn(null);
+    void personalArea_NotAuthorize() throws Exception {
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute("email",null);
 
 
-        ResultActions perform = mockMvc.perform(get("/v1/auction/personalArea"));
+        ResultActions perform = mockMvc.perform(get("/v1/auction/personalArea")
+                .session(session)
+        );
 
-        perform.andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/v1/security/login"));
-
-
+        perform
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/v1/auction/security/login"));
     }
 }

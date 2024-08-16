@@ -26,41 +26,42 @@ public class AuctionResultService {
     @Scheduled(fixedRate = 60000)
     public void auctionResult() {
         List<AuctionInfo> allAuctions = auctionInfoRepository.findAll();
+
         for (AuctionInfo auctionInfo : allAuctions) {
-            LocalDateTime localDateTime = LocalDateTime.of(auctionInfo.getEndDate(), auctionInfo.getEndTime());
-            if (localDateTime.isBefore(LocalDateTime.now()) && auctionInfo.getIsValid()) {
-                Bid winingBid = bidRepository.findWiningBid(auctionInfo.getUniqueCode());
-                Message message = getMessageForWinner(auctionInfo.getTitle(),
-                        winingBid.getCustomerEmail(), winingBid.getNewBid(), winingBid.getUniqueCode());
-                Message messageForOwner = getMessageForOwner(auctionInfo.getTitle(),
-                        auctionInfo.getOwnerEmail(), winingBid.getNewBid(), winingBid.getUniqueCode());
-                log.info(message.toString());
-                auctionInfo.setIsValid(false);
-                auctionInfoRepository.save(auctionInfo);
-                kafkaTemplate.send("email", message);
+            if (isAuctionCompleted(auctionInfo)) {
+                Bid winningBid = bidRepository.findWiningBid(auctionInfo.getUniqueCode());
+                Message messageForWinner = createMessage(auctionInfo.getTitle(), winningBid, false);
+                Message messageForOwner = createMessage(auctionInfo.getTitle(), winningBid, true);
+
+                log.info(messageForWinner.toString());
+                log.info(messageForOwner.toString());
+
+                markAuctionAsCompleted(auctionInfo);
+
+                kafkaTemplate.send("email", messageForWinner);
                 kafkaTemplate.send("email", messageForOwner);
             }
         }
     }
 
-    private Message getMessageForWinner(String productName, String email, Double price, String uniqueCode) {
+    private boolean isAuctionCompleted(AuctionInfo auctionInfo) {
+        LocalDateTime localDateTime = LocalDateTime.of(auctionInfo.getEndDate(), auctionInfo.getEndTime());
+        return localDateTime.isBefore(LocalDateTime.now()) && auctionInfo.getIsValid();
+    }
+
+    private Message createMessage(String productName, Bid winningBid, boolean isOwner) {
         Message message = new Message();
-        message.setWinnerEmail(email);
+        message.setWinnerEmail(winningBid.getCustomerEmail());
         message.setProductName(productName);
-        message.setProductPrice(price);
-        message.setUniqueCode(uniqueCode);
-        message.setOwner(false);
+        message.setProductPrice(winningBid.getNewBid());
+        message.setUniqueCode(winningBid.getUniqueCode());
+        message.setOwner(isOwner);
         return message;
     }
 
-    private Message getMessageForOwner(String productName, String email, Double price, String uniqueCode) {
-        Message message = new Message();
-        message.setWinnerEmail(email);
-        message.setProductName(productName);
-        message.setProductPrice(price);
-        message.setUniqueCode(uniqueCode);
-        message.setOwner(true);
-        return message;
+    private void markAuctionAsCompleted(AuctionInfo auctionInfo) {
+        auctionInfo.setIsValid(false);
+        auctionInfoRepository.save(auctionInfo);
     }
-
 }
+

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8">
     <title>Просмотр товара</title>
@@ -101,6 +101,7 @@
             <input type="number" name="newBid" id="newBid" th:field="*{newBid}">
             <p th:if="${#fields.hasErrors('newBid')}" th:errors="*{newBid}" class="error"></p>
         </div>
+        <p th:if="${errors != null}" th:text="${errors}" class="error"></p>
         <input type="submit" value="Отправить">
     </form>
 </div>

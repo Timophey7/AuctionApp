@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8">
     <title>Аукцион</title>
@@ -82,7 +82,7 @@
 <body>
 <div class="container">
     <div th:each="auction:${auctions}" class="slot">
-        <img th:src="${auction.photoUrl}"></img>
+        <img th:src="${auction.photoUrl}">
         <p th:text="${auction.title}"></p>
         <p th:text="${auction.price}"></p>
         <p>Аукцион продлится с <p th:text="${auction.startDate}"></p> <p th:text="${auction.startTime}"></p> до <p th:text="${auction.endDate}"></p><p th:text="${auction.endTime}"></p>

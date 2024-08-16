@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8">
     <title>Авторизация</title>
@@ -96,6 +96,7 @@
         </div>
         <input type="submit" value="Войти">
         <a th:href="@{/v1/auction/security/registration}">Зарегистрироваться</a>
+        <p th:if="${errors != null}" th:text="${errors}" class="error"></p>
     </form>
 </div>
 </body>

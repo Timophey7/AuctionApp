@@ -1,8 +1,7 @@
 package com.userservice.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.userservice.model.AuthenticationResponse;
+import com.userservice.model.AuthenticationRequest;
 import com.userservice.model.Role;
 import com.userservice.model.User;
 import com.userservice.reposiroty.UserRepository;
@@ -24,7 +23,6 @@ import java.util.Optional;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -45,10 +43,10 @@ class SecurityControllerTest {
     private UserRepository userRepository;
 
     private User user;
-    private AuthenticationResponse authentication;
+    private AuthenticationRequest authentication;
     @BeforeEach
     void setUp() {
-        authentication = new AuthenticationResponse();
+        authentication = new AuthenticationRequest();
         authentication.setEmail("email");
         authentication.setPassword("password");
         user = new User();
@@ -57,10 +55,15 @@ class SecurityControllerTest {
         user.setEmail("email");
         user.setPhone("phone");
         user.setRole(Role.USER);
+        user.setAddress("address");
+        user.setId(1);
+        user.setFirstName("Jon");
+        user.setLastName("Mutex");
+        user.setNumberOfCard("1231231123");
     }
 
     @Test
-    void registerUserShouldReturnStatusIsCreated() throws Exception {
+    void registerUser_Created() throws Exception {
 
         doNothing().when(userService).saveUser(user);
 
@@ -74,15 +77,27 @@ class SecurityControllerTest {
     }
 
     @Test
-    void getUserByEmailShouldReturnStatusIsOk() throws Exception {
+    void registerUser_BadRequest() throws Exception {
+
+        User notValidUser = new User();
+
+        ResultActions perform = mockMvc.perform(post("/v1/security/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(notValidUser)));
+
+        perform.andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void getUserByEmail_Ok() throws Exception {
 
         String email = "email";
-        when(userRepository.findUserByEmail(email)).thenReturn(Optional.of(user));
+        when(userService.findUserByEmail(email)).thenReturn(user);
 
         ResultActions perform = mockMvc.perform(get("/v1/security/getUserByEmail/" + email));
 
         perform.andExpect(status().isOk());
-        verify(userRepository).findUserByEmail(email);
+        verify(userService).findUserByEmail(email);
 
 
     }

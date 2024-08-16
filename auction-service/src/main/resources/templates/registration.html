@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8">
     <title>Регистрация</title>
@@ -114,6 +114,7 @@
             <input type="text" name="numberOfCard" id="numberOfCard" th:field="*{numberOfCard}">
             <p th:if="${#fields.hasErrors('numberOfCard')}" th:errors="${numberOfCard}" class="error"></p>
         </div>
+        <p th:if="${errors != null}" th:text="${errors}" class="error"></p>
         <input type="submit" value="Зарегистрироваться">
     </form>
 </div>

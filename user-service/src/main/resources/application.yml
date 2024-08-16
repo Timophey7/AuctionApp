@@ -1,17 +1,14 @@
 spring:
-  liquibase:
-    enabled: true
-    change-log: classpath:db.changelog/liquibase-changelog.yaml
   application:
     name: user-service
   datasource:
-    url: jdbc:postgresql://localhost:5433/user-service
-    username: ${POSTGRES_PASSWORD}
-    password: ${POSTGRES_USER}
+    url: jdbc:postgresql://localhost:5432/user-service
+    username: ${USER}
+    password: ${PASSWORD}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: create-drop
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
